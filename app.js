@@ -150,6 +150,12 @@ const app = {
             case 'secondary-market':
                 this.renderSecondaryMarket();
                 break;
+            case 'edit-profile':
+                this.populateEditProfile();
+                break;
+            case 'edit-investor-profile':
+                this.populateInvestorEditProfile();
+                break;
         }
     },
 
@@ -377,7 +383,7 @@ const app = {
         let videoHtml = '';
         if (athlete.videoUrl) {
             videoHtml = `
-           <h4 class="mt-4">Proof of Talent</h4>
+           <h4 class="mt-4">Highlights</h4>
            <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: var(--radius-md); margin-top: 1rem; border: 1px solid rgba(255,255,255,0.1);">
               <iframe style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" src="${athlete.videoUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
            </div>
@@ -398,8 +404,23 @@ const app = {
                     </div>
                     <div class="athlete-info">
                         <h3>About</h3>
-                        <p>${athlete.bio}</p>
+                        <p>${athlete.bio || athlete.name + ' is raising funds on CrowdAthlete.'}</p>
                         
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; border-radius: var(--radius-md); margin-top: 1.5rem; display: flex; gap: 2rem;">
+                            <div>
+                                <span class="stat-label">Birthday</span>
+                                <div class="stat-val" style="font-size: 1.1rem;">${athlete.birthday || 'N/A'}</div>
+                            </div>
+                            <div>
+                                <span class="stat-label">Age</span>
+                                <div class="stat-val" style="font-size: 1.1rem;">${athlete.birthday ? Math.floor((new Date() - new Date(athlete.birthday).getTime()) / 3.15576e+10) : 'N/A'}</div>
+                            </div>
+                            <div>
+                                <span class="stat-label">Country</span>
+                                <div class="stat-val" style="font-size: 1.1rem;">${athlete.country || 'N/A'}</div>
+                            </div>
+                        </div>
+
                         ${planHtml}
                         
                         <h4 class="mt-4">Track Record</h4>
@@ -428,6 +449,35 @@ const app = {
                         <span>$${athlete.amountRaised.toLocaleString()} Raised</span>
                         <span>$${athlete.fundingGoal.toLocaleString()} Goal</span>
                     </div>
+
+                    <h4 class="mt-4" style="color: var(--color-accent); font-size: 1.1rem; margin-bottom: 0.5rem;">Simulated ROI Scenarios</h4>
+                    <p style="font-size: 0.8rem; color: var(--color-text-muted); margin-bottom: 1rem;">Based on a $10,000 investment for ${athlete.plan ? athlete.plan.revenueShare : 10}% Revenue Share</p>
+                    <table style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); overflow: hidden;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                <th style="padding: 0.75rem; font-size: 0.85rem; color: var(--color-text-muted); font-weight: 600;">Scenario</th>
+                                <th style="padding: 0.75rem; font-size: 0.85rem; color: var(--color-text-muted); font-weight: 600;">Est. Career Earnings</th>
+                                <th style="padding: 0.75rem; font-size: 0.85rem; color: var(--color-text-muted); font-weight: 600;">Investor Return</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">Conservative</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">€200,000</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem; font-weight: 700;">€${(200000 * (athlete.plan ? athlete.plan.revenueShare / 100 : 0.1)).toLocaleString()}</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">Moderate</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">€800,000</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--color-accent);">€${(800000 * (athlete.plan ? athlete.plan.revenueShare / 100 : 0.1)).toLocaleString()}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">Breakout</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem;">€5,000,000</td>
+                                <td style="padding: 0.75rem; font-size: 0.9rem; font-weight: 700; color: var(--color-accent);">€${(5000000 * (athlete.plan ? athlete.plan.revenueShare / 100 : 0.1)).toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
 
                     <div style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: var(--radius-md); margin: 2rem 0;">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
@@ -467,21 +517,22 @@ const app = {
         if (isNaN(shares) || shares <= 0) return this.showToast('Invalid shares amount', 'error');
 
         const totalCost = shares * price;
+        const inv = STATE.investors[STATE.currentUserEmail];
 
-        if (STATE.investor.balance < totalCost) {
+        if (inv.balance < totalCost) {
             return this.showToast('Insufficient balance', 'error');
         }
 
         // Deduct balance
-        STATE.investor.balance -= totalCost;
+        inv.balance -= totalCost;
 
         // Add to portfolio
-        const existing = STATE.investor.portfolio.find(p => p.athleteId === id);
+        const existing = inv.portfolio.find(p => p.athleteId === id);
         if (existing) {
             existing.sharesOwned += shares;
             existing.investedAmount += totalCost;
         } else {
-            STATE.investor.portfolio.push({
+            inv.portfolio.push({
                 athleteId: id,
                 sharesOwned: shares,
                 investedAmount: totalCost
@@ -500,22 +551,28 @@ const app = {
     },
 
     renderPortfolio() {
+        const inv = STATE.investors[STATE.currentUserEmail];
+        if (!inv) return;
+
+        // Support Legacy referencing STATE.investor for backwards compatibility in existing session states if needed
+        STATE.investor = inv;
+
         // Calculate totals
         let totalInvested = 0;
-        STATE.investor.portfolio.forEach(p => { totalInvested += p.investedAmount; });
+        inv.portfolio.forEach(p => { totalInvested += p.investedAmount; });
 
         document.getElementById('port-total-invested').innerText = `$${totalInvested.toLocaleString()}`;
-        document.getElementById('port-athletes-backed').innerText = STATE.investor.portfolio.length;
+        document.getElementById('port-athletes-backed').innerText = inv.portfolio.length;
 
         const list = document.getElementById('portfolio-holdings');
         list.innerHTML = '';
 
-        if (STATE.investor.portfolio.length === 0) {
+        if (inv.portfolio.length === 0) {
             list.innerHTML = '<p class="text-center mt-4">You have not backed any athletes yet. Visit the Marketplace to discover talent.</p>';
             return;
         }
 
-        STATE.investor.portfolio.forEach(holding => {
+        inv.portfolio.forEach(holding => {
             const athlete = STATE.marketAthletes.find(a => a.id === holding.athleteId);
             if (!athlete) return;
 
@@ -535,13 +592,71 @@ const app = {
                         <span style="font-size: 0.85rem; color: var(--color-text-muted);">${holding.sharesOwned} Shares</span>
                     </div>
                 </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: 700;">$${currentValue.toLocaleString()}</div>
-                    <div class="${profitClass}" style="font-size: 0.85rem;">${profitStr} Returns</div>
+                <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                    <div>
+                        <div style="font-weight: 700;">$${currentValue.toLocaleString()}</div>
+                        <div class="${profitClass}" style="font-size: 0.85rem;">${profitStr} Returns</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <button class="btn secondary sm" onclick="app.viewAthleteDetails('${holding.athleteId}')">View Profile</button>
+                        <button class="btn secondary sm" onclick="app.listOnSecondary('${holding.athleteId}')">List on Market</button>
+                    </div>
                 </div>
             `;
             list.appendChild(item);
         });
+    },
+
+    listOnSecondary(athleteId) {
+        const athlete = STATE.marketAthletes.find(a => a.id === athleteId);
+        if (!athlete) return;
+
+        const holding = STATE.investor.portfolio.find(p => p.athleteId === athleteId);
+        if (!holding || holding.sharesOwned <= 0) return this.showToast('You do not own shares to sell.', 'error');
+
+        // Simple prompt UI for simulation
+        const sellAmountStr = prompt(`How many shares of ${athlete.name} do you want to list? (You own ${holding.sharesOwned})`, holding.sharesOwned);
+        if (sellAmountStr === null) return; // User cancelled
+
+        const sellAmount = parseInt(sellAmountStr);
+        if (isNaN(sellAmount) || sellAmount <= 0 || sellAmount > holding.sharesOwned) {
+            return this.showToast('Invalid share amount.', 'error');
+        }
+
+        const currentEstPrice = athlete.sharePrice + (athlete.riskLevel === 'high' ? 4 : 2);
+        const askingPriceStr = prompt(`What is your asking price per share? (Suggested: $${currentEstPrice})`, currentEstPrice);
+        if (askingPriceStr === null) return;
+
+        const askingPrice = parseFloat(askingPriceStr);
+        if (isNaN(askingPrice) || askingPrice <= 0) {
+            return this.showToast('Invalid asking price.', 'error');
+        }
+
+        // Deduct from portfolio
+        holding.sharesOwned -= sellAmount;
+
+        // Adjust investedAmount proportionally
+        const ratioSold = sellAmount / (holding.sharesOwned + sellAmount);
+        holding.investedAmount = holding.investedAmount * (1 - ratioSold);
+
+        // Remove holding array item if empty
+        if (holding.sharesOwned <= 0) {
+            STATE.investor.portfolio = STATE.investor.portfolio.filter(p => p.athleteId !== athleteId);
+        }
+
+        // Add to Secondary Market orders
+        STATE.secondaryMarket.push({
+            id: 'o_' + Date.now(),
+            athleteId: athleteId,
+            sellerId: STATE.currentUserEmail, // The current user
+            shares: sellAmount,
+            price: askingPrice,
+            type: 'sell'
+        });
+
+        saveState();
+        this.showToast(`Listed ${sellAmount} shares of ${athlete.name} for sale at $${askingPrice}/share!`);
+        this.renderPortfolio(); // Refresh view
     },
 
     renderSecondaryMarket() {
@@ -589,29 +704,45 @@ const app = {
     },
 
     buyFromSecondary(orderId, price, shares, athleteId) {
+        const order = STATE.secondaryMarket.find(o => o.id === orderId);
+        if (!order) return this.showToast('Order not found.', 'error');
+
+        if (order.sellerId === STATE.currentUserEmail) {
+            return this.showToast('You cannot buy your own listing.', 'error');
+        }
+
         const totalCost = price * shares;
-        if (STATE.investor.balance < totalCost) {
+        const buyer = STATE.investors[STATE.currentUserEmail];
+
+        if (buyer.balance < totalCost) {
             return this.showToast('Insufficient balance for this block trade.', 'error');
         }
 
-        // Deduct balance
-        STATE.investor.balance -= totalCost;
+        // Deduct balance from buyer
+        buyer.balance -= totalCost;
 
-        // Add to portfolio
-        const existing = STATE.investor.portfolio.find(p => p.athleteId === athleteId);
-        if (existing) {
-            existing.sharesOwned += shares;
-            existing.investedAmount += totalCost;
+        // Add to buyer's portfolio
+        const buyerExisting = buyer.portfolio.find(p => p.athleteId === athleteId);
+        if (buyerExisting) {
+            buyerExisting.sharesOwned += shares;
+            buyerExisting.investedAmount += totalCost;
         } else {
-            STATE.investor.portfolio.push({
+            buyer.portfolio.push({
                 athleteId: athleteId,
                 sharesOwned: shares,
                 investedAmount: totalCost
             });
         }
 
+        // Credit the seller's account with virtual funds
+        if (STATE.investors[order.sellerId]) {
+            STATE.investors[order.sellerId].balance += totalCost;
+        }
+
         // Remove order
         STATE.secondaryMarket = STATE.secondaryMarket.filter(o => o.id !== orderId);
+
+        saveState();
 
         const athlete = STATE.marketAthletes.find(a => a.id === athleteId);
 
@@ -694,6 +825,9 @@ const app = {
         const profileData = {
             email: STATE.currentUserEmail,
             name: document.getElementById('wiz-name').value,
+            country: document.getElementById('wiz-country').value,
+            birthday: document.getElementById('wiz-birthday').value,
+            age: parseInt(document.getElementById('wiz-age').value),
             sport: document.getElementById('wiz-sport').value,
             image: document.getElementById('wiz-image').value || '',
             goal: parseFloat(document.getElementById('wiz-goal').value),
@@ -708,25 +842,30 @@ const app = {
                 estEarnings: parseFloat(document.getElementById('wiz-earnings').value),
                 revenueShare: window._tempContractShare
             },
+            bio: document.getElementById('wiz-bio').value,
             videoUrl: document.getElementById('wiz-video').value
         };
+
+        const newId = 'a_' + Date.now();
+        profileData.marketId = newId;
 
         // Save to Athlete State
         STATE.athletes[STATE.currentUserEmail] = profileData;
 
         // Add to Market Database
         STATE.marketAthletes.unshift({
-            id: 'a_' + Date.now(),
+            id: newId,
             name: profileData.name,
             sport: profileData.sport,
-            country: 'Global',
+            country: profileData.country,
+            birthday: profileData.birthday,
             fundingGoal: profileData.goal,
             amountRaised: 0,
             sharePrice: 10,  // Default starting price
             sharesTotal: Math.floor(profileData.goal / 10),
             stats: profileData.stats,
             riskLevel: 'high', // New profiles default to high risk
-            bio: "Newly verified athlete. Review their detailed plan.",
+            bio: profileData.bio,
             image: profileData.image || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?fit=crop&w=500&q=80',
             plan: profileData.plan,
             videoUrl: profileData.videoUrl
@@ -748,6 +887,101 @@ const app = {
 
         const pct = ath.goal > 0 ? (ath.raised / ath.goal) * 100 : 0;
         document.getElementById('dash-ath-progress').style.width = `${pct}%`;
+    },
+
+    // Edit Profile Logic
+    populateEditProfile() {
+        const ath = STATE.athletes[STATE.currentUserEmail];
+        if (!ath) return;
+
+        document.getElementById('edit-name').value = ath.name || '';
+        document.getElementById('edit-country').value = ath.country || '';
+        document.getElementById('edit-birthday').value = ath.birthday || '';
+        document.getElementById('edit-bio').value = ath.bio || '';
+        document.getElementById('edit-use').value = ath.plan?.useOfFunds || '';
+        document.getElementById('edit-image').value = ath.image || '';
+        document.getElementById('edit-video').value = ath.videoUrl || '';
+        document.getElementById('edit-stat1').value = ath.stats?.stat1 || '';
+        document.getElementById('edit-stat2').value = ath.stats?.stat2 || '';
+
+        // Ensure values are properly mapped visually if they had old formats
+        if (ath.stats) {
+            const keys = Object.keys(ath.stats);
+            if (keys.length > 0 && !ath.stats.stat1) document.getElementById('edit-stat1').value = ath.stats[keys[0]] || '';
+            if (keys.length > 1 && !ath.stats.stat2) document.getElementById('edit-stat2').value = ath.stats[keys[1]] || '';
+        }
+    },
+
+    submitEditProfile(e) {
+        e.preventDefault();
+
+        const ath = STATE.athletes[STATE.currentUserEmail];
+        if (!ath) return;
+
+        // Update STATE.athletes
+        ath.name = document.getElementById('edit-name').value;
+        ath.country = document.getElementById('edit-country').value;
+        ath.birthday = document.getElementById('edit-birthday').value;
+        ath.bio = document.getElementById('edit-bio').value;
+        if (ath.plan) {
+            ath.plan.useOfFunds = document.getElementById('edit-use').value;
+        } else {
+            ath.plan = { useOfFunds: document.getElementById('edit-use').value, timePeriod: 'N/A', estEarnings: 0, revenueShare: 10 };
+        }
+        ath.image = document.getElementById('edit-image').value;
+        ath.videoUrl = document.getElementById('edit-video').value;
+        if (!ath.stats) ath.stats = {};
+        ath.stats.stat1 = document.getElementById('edit-stat1').value;
+        ath.stats.stat2 = document.getElementById('edit-stat2').value;
+
+        // Update corresponding marketAthlete
+        if (ath.marketId) {
+            const marketAthlete = STATE.marketAthletes.find(a => a.id === ath.marketId);
+            if (marketAthlete) {
+                marketAthlete.name = ath.name;
+                marketAthlete.country = ath.country;
+                marketAthlete.birthday = ath.birthday;
+                marketAthlete.bio = ath.bio;
+                marketAthlete.image = ath.image || 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?fit=crop&w=500&q=80';
+                marketAthlete.videoUrl = ath.videoUrl;
+                if (marketAthlete.plan) marketAthlete.plan.useOfFunds = ath.plan.useOfFunds;
+                marketAthlete.stats = ath.stats;
+            }
+        }
+
+        saveState();
+        this.showToast('Profile updated successfully!');
+        this.navigate('athlete-dashboard');
+        this.renderAthleteDashboard();
+        this.renderNavbar();
+    },
+
+    // Investor Edit Profile Logic
+    populateInvestorEditProfile() {
+        const inv = STATE.investors[STATE.currentUserEmail];
+        if (!inv) return;
+
+        document.getElementById('edit-inv-name').value = inv.name || '';
+        document.getElementById('edit-inv-country').value = inv.country || '';
+        document.getElementById('edit-inv-birthday').value = inv.birthday || '';
+        document.getElementById('edit-inv-image').value = inv.image || '';
+    },
+
+    submitInvestorEditProfile(e) {
+        e.preventDefault();
+
+        const inv = STATE.investors[STATE.currentUserEmail];
+        if (!inv) return;
+
+        inv.name = document.getElementById('edit-inv-name').value;
+        inv.country = document.getElementById('edit-inv-country').value;
+        inv.birthday = document.getElementById('edit-inv-birthday').value;
+        inv.image = document.getElementById('edit-inv-image').value || 'https://images.unsplash.com/photo-1560250097-0b93528c311a?fit=crop&w=500&q=80';
+
+        saveState();
+        this.showToast('Investor Profile updated successfully!');
+        this.navigate('portfolio');
+        this.renderNavbar();
     }
 };
 

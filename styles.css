@@ -1,20 +1,22 @@
 :root {
-    /* Brand Colors */
-    --color-primary: #4F46E5;
-    --color-primary-hover: #4338CA;
-    --color-secondary: #0ea5e9;
-    --color-background: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-hover: #334155;
+    /* Brand Colors - Professional Sporty with Pop */
+    --color-primary: #f97316;
+    /* Intense Orange */
+    --color-primary-hover: #ea580c;
+    --color-secondary: #dc2626;
+    /* Deep Athletic Red */
+    --color-background: #09090b;
+    --color-surface: #18181b;
+    --color-surface-hover: #27272a;
     --color-text: #f8fafc;
-    --color-text-muted: #94a3b8;
+    --color-text-muted: #a1a1aa;
     --color-accent: #10b981;
     --color-danger: #ef4444;
 
-    /* Layout */
-    --radius-md: 12px;
-    --radius-lg: 24px;
-    --radius-full: 9999px;
+    /* Layout - Sharper Edges */
+    --radius-md: 4px;
+    --radius-lg: 8px;
+    --radius-full: 4px;
 
     /* Transitions */
     --transition-fast: 0.2s ease;
@@ -34,8 +36,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     background-image:
-        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(249, 115, 22, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(220, 38, 38, 0.12) 0px, transparent 50%);
     background-attachment: fixed;
 }
 
@@ -44,22 +46,24 @@ h1,
 h2,
 h3,
 h4 {
-    font-weight: 700;
-    line-height: 1.2;
+    font-weight: 800;
+    line-height: 1.1;
     margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 h1 {
-    font-size: 3.5rem;
-    letter-spacing: -0.02em;
+    font-size: 5rem;
+    letter-spacing: 0;
 }
 
 h2 {
-    font-size: 2.25rem;
+    font-size: 3.5rem;
 }
 
 h3 {
-    font-size: 1.5rem;
+    font-size: 2.25rem;
 }
 
 p {
@@ -131,13 +135,14 @@ nav {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.5rem;
-    font-weight: 800;
+    font-weight: 900;
     color: white;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     -webkit-background-clip: text;
     background-clip: text;
-    -webkit-text-fill-color: transparent;
 }
 
 .nav-links {
@@ -190,23 +195,30 @@ nav {
 .btn.primary {
     background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
     color: white;
-    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+    box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4);
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
 
 .btn.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.6);
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.6);
 }
 
 .btn.secondary {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
 }
 
 .btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
     transform: translateY(-2px);
+    border-color: var(--color-primary);
 }
 
 .btn.sm {
@@ -270,7 +282,7 @@ select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+    box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
 /* Cards & Grids */
@@ -367,6 +379,7 @@ textarea:focus {
 .progress-bar {
     height: 100%;
     background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.3);
     border-radius: var(--radius-full);
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
