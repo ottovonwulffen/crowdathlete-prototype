@@ -176,20 +176,22 @@ const app = {
                 <a onclick="app.navigate('secondary-market')" class="${STATE.activeView === 'secondary-market' ? 'active-link' : ''}">Trading Floor</a>
             `;
             profileContainer.innerHTML = `
-                <span class="wallet-badge">$${inv ? inv.balance.toLocaleString() : '0'}</span>
-                <i data-lucide="user"></i>
-                <button class="btn secondary sm" style="margin-left: 1rem;" onclick="app.logout()"><i data-lucide="log-out"></i></button>
-            `;
+            <span class="wallet-badge">$${inv ? inv.balance.toLocaleString() : '0'}</span>
+            <i data-lucide="user"></i>
+            <button class="btn secondary sm" style="margin-left: 1rem;" onclick="app.navigate('edit-investor-profile')" title="Edit Profile"><i data-lucide="edit-2"></i></button>
+            <button class="btn secondary sm" style="margin-left: 0.5rem;" onclick="app.logout()" title="Logout"><i data-lucide="log-out"></i></button>
+        `;
         } else if (STATE.currentUserType === 'athlete') {
             const ath = STATE.athletes[STATE.currentUserEmail];
             linksContainer.innerHTML = `
                 <a onclick="app.navigate('athlete-dashboard')" class="active-link">Dashboard</a>
             `;
             profileContainer.innerHTML = `
-                <span>${ath ? ath.name : 'Athlete'}</span>
-                <i data-lucide="award"></i>
-                <button class="btn secondary sm" style="margin-left: 1rem;" onclick="app.logout()"><i data-lucide="log-out"></i></button>
-            `;
+            <span>${ath ? ath.name : 'Athlete'}</span>
+            <i data-lucide="award"></i>
+            <button class="btn secondary sm" style="margin-left: 1rem;" onclick="app.navigate('edit-profile')" title="Edit Profile"><i data-lucide="edit-2"></i></button>
+            <button class="btn secondary sm" style="margin-left: 0.5rem;" onclick="app.logout()" title="Logout"><i data-lucide="log-out"></i></button>
+        `;
         }
         lucide.createIcons();
     },
