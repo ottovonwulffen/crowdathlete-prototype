@@ -111,6 +111,31 @@
                         <p>Discover and invest in Latin America's rising stars.</p>
                     </div>
 
+                    <!-- Marketplace Filters -->
+                    <div class="filters-container"
+                        style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <select id="filter-sport" class="form-input" onchange="app.renderMarketplace()"
+                            style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem; border-radius: var(--radius-md);">
+                            <option value="all">All Sports</option>
+                            <option value="Tennis">Tennis</option>
+                            <option value="Soccer">Soccer</option>
+                            <option value="Track">Track & Field</option>
+                            <option value="Golf">Golf</option>
+                        </select>
+                        <select id="filter-country" class="form-input" onchange="app.renderMarketplace()"
+                            style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem; border-radius: var(--radius-md);">
+                            <option value="all">All Countries</option>
+                            <!-- Options populated dynamically by JS -->
+                        </select>
+                        <select id="filter-age" class="form-input" onchange="app.renderMarketplace()"
+                            style="flex: 1; min-width: 150px; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 0.75rem; border-radius: var(--radius-md);">
+                            <option value="all">All Ages</option>
+                            <option value="under18">Under 18</option>
+                            <option value="18to24">18 - 24</option>
+                            <option value="25plus">25+</option>
+                        </select>
+                    </div>
+
                     <div class="grid" id="athlete-grid">
                         <!-- Cards injected by JS -->
                     </div>
@@ -240,6 +265,11 @@
                             <div class="form-group">
                                 <label>Profile Image URL (Optional)</label>
                                 <input type="url" id="wiz-image" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>About Me</label>
+                                <textarea id="wiz-about" rows="3" required
+                                    placeholder="Tell investors a little bit about yourself!"></textarea>
                             </div>
                             <button type="submit" class="btn primary">Next Step <i
                                     data-lucide="arrow-right"></i></button>

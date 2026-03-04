@@ -35,6 +35,7 @@ const DEFAULT_STATE = {
                 estEarnings: 45000,
                 revenueShare: 12
             },
+            age: 17,
             videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ' // Mock placeholder
         },
         {
@@ -56,6 +57,7 @@ const DEFAULT_STATE = {
                 estEarnings: 20000,
                 revenueShare: 8
             },
+            age: 21,
             videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
         },
         {
@@ -77,6 +79,7 @@ const DEFAULT_STATE = {
                 estEarnings: 150000,
                 revenueShare: 5
             },
+            age: 26,
             videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
         }
     ],
@@ -142,6 +145,7 @@ const app = {
     triggerViewLogic(viewId) {
         switch (viewId) {
             case 'marketplace':
+                this.populateCountryFilter();
                 this.renderMarketplace();
                 break;
             case 'portfolio':
@@ -295,11 +299,56 @@ const app = {
         return score;
     },
 
+    populateCountryFilter() {
+        const countrySelect = document.getElementById('filter-country');
+        if (!countrySelect) return;
+
+        // Keep "All Countries" as the first option
+        countrySelect.innerHTML = '<option value="all">All Countries</option>';
+
+        // Get unique countries
+        const countries = [...new Set(STATE.marketAthletes.map(a => a.country))].sort();
+
+        countries.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country;
+            option.innerText = country;
+            countrySelect.appendChild(option);
+        });
+    },
+
     renderMarketplace() {
         const grid = document.getElementById('athlete-grid');
         grid.innerHTML = '';
 
-        STATE.marketAthletes.forEach(athlete => {
+        const sportFilter = document.getElementById('filter-sport')?.value || 'all';
+        const countryFilter = document.getElementById('filter-country')?.value || 'all';
+        const ageFilter = document.getElementById('filter-age')?.value || 'all';
+
+        const filteredAthletes = STATE.marketAthletes.filter(athlete => {
+            // Sport check
+            if (sportFilter !== 'all' && athlete.sport !== sportFilter) return false;
+
+            // Country check
+            if (countryFilter !== 'all' && athlete.country !== countryFilter) return false;
+
+            // Age check
+            if (ageFilter !== 'all') {
+                if (!athlete.age) return false; // In case age is missing
+                if (ageFilter === 'under18' && athlete.age >= 18) return false;
+                if (ageFilter === '18to24' && (athlete.age < 18 || athlete.age > 24)) return false;
+                if (ageFilter === '25plus' && athlete.age < 25) return false;
+            }
+
+            return true;
+        });
+
+        if (filteredAthletes.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--color-text-muted);">No athletes found matching your filters.</div>';
+            return;
+        }
+
+        filteredAthletes.forEach(athlete => {
             const matchScore = this.calculateMatchScore(athlete);
             const progress = (athlete.amountRaised / athlete.fundingGoal) * 100;
 
@@ -821,13 +870,26 @@ const app = {
     submitAthleteWizard(e) {
         e.preventDefault();
 
+        // Calculate age from birthday
+        const bdayStr = document.getElementById('wiz-birthday').value;
+        let calculatedAge = null;
+        if (bdayStr) {
+            const birthDate = new Date(bdayStr);
+            const today = new Date();
+            calculatedAge = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                calculatedAge--;
+            }
+        }
+
         // Compile all data
         const profileData = {
             email: STATE.currentUserEmail,
             name: document.getElementById('wiz-name').value,
             country: document.getElementById('wiz-country').value,
-            birthday: document.getElementById('wiz-birthday').value,
-            age: parseInt(document.getElementById('wiz-age').value),
+            birthday: bdayStr,
+            age: calculatedAge,
             sport: document.getElementById('wiz-sport').value,
             image: document.getElementById('wiz-image').value || '',
             goal: parseFloat(document.getElementById('wiz-goal').value),
@@ -842,7 +904,7 @@ const app = {
                 estEarnings: parseFloat(document.getElementById('wiz-earnings').value),
                 revenueShare: window._tempContractShare
             },
-            bio: document.getElementById('wiz-bio').value,
+            bio: document.getElementById('wiz-about').value,
             videoUrl: document.getElementById('wiz-video').value
         };
 
