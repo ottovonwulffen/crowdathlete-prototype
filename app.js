@@ -192,6 +192,10 @@ const app = {
             <button class="btn secondary sm" style="margin-left: 1rem;" onclick="app.navigate('edit-profile')" title="Edit Profile"><i data-lucide="edit-2"></i></button>
             <button class="btn secondary sm" style="margin-left: 0.5rem;" onclick="app.logout()" title="Logout"><i data-lucide="log-out"></i></button>
         `;
+        } else {
+            // Not logged in
+            linksContainer.innerHTML = '';
+            profileContainer.innerHTML = `<button class="btn secondary sm" onclick="app.viewLogin()">Login</button>`;
         }
         lucide.createIcons();
     },
@@ -211,49 +215,64 @@ const app = {
 
     // --- AUTHENTICATION ---
 
-    viewLogin(type) {
-        document.getElementById('auth-type').value = type;
-        document.getElementById('auth-title').innerText = type === 'investor' ? 'Investor Login' : 'Athlete Login';
+    viewRegister(type) {
+        document.getElementById('register-type').value = type;
+        document.getElementById('register-title').innerText = type === 'investor' ? 'Investor Registration' : 'Athlete Registration';
+        this.navigate('register');
+    },
+
+    viewLogin() {
         this.navigate('login');
     },
 
-    submitAuth(e) {
+    submitRegister(e) {
         e.preventDefault();
         const formData = new FormData(e.target);
         const email = formData.get('email');
         const type = formData.get('type');
 
+        // Check if exists
+        if (STATE.investors[email] || STATE.athletes[email] !== undefined) {
+            return this.showToast('Account already exists. Please log in.', 'error');
+        }
+
         STATE.currentUserEmail = email;
         STATE.currentUserType = type;
 
         if (type === 'investor') {
-            // Check if exists
-            if (!STATE.investors[email]) {
-                // Registering new investor
-                STATE.investors[email] = {
-                    balance: 10000,
-                    riskProfile: null,
-                    portfolio: []
-                };
-                saveState();
-                this.navigate('onboarding-investor');
-            } else {
-                saveState();
-                this.showToast('Logged in successfully');
-                this.navigate('marketplace');
-            }
+            STATE.investors[email] = {
+                balance: 10000,
+                riskProfile: null,
+                portfolio: []
+            };
+            saveState();
+            this.navigate('onboarding-investor');
         } else {
-            // Athlete login
-            if (!STATE.athletes[email]) {
-                // Registering new athlete
-                STATE.athletes[email] = null; // null means no profile yet
-                saveState();
-                this.navigate('onboarding-athlete-wizard');
-            } else {
-                saveState();
-                this.showToast('Logged in successfully');
-                this.navigate('athlete-dashboard');
-            }
+            STATE.athletes[email] = null;
+            saveState();
+            this.navigate('onboarding-athlete-wizard');
+        }
+    },
+
+    submitLogin(e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+
+        if (STATE.investors[email]) {
+            STATE.currentUserEmail = email;
+            STATE.currentUserType = 'investor';
+            saveState();
+            this.showToast('Logged in successfully');
+            this.navigate('marketplace');
+        } else if (STATE.athletes[email] !== undefined) {
+            STATE.currentUserEmail = email;
+            STATE.currentUserType = 'athlete';
+            saveState();
+            this.showToast('Logged in successfully');
+            this.navigate('athlete-dashboard');
+        } else {
+            this.showToast('Account not found. Please check your email or register.', 'error');
         }
     },
 
@@ -261,8 +280,8 @@ const app = {
         STATE.currentUserEmail = null;
         STATE.currentUserType = null;
         saveState();
-        this.navigate('landing');
-        this.showToast('Logged out');
+        // Fully reload the page to ensure all runtime state is cleared and user is safely logged out
+        window.location.reload();
     },
 
     // --- INVESTOR LOGIC ---
@@ -402,9 +421,10 @@ const app = {
         let statsHtml = '';
         if (athlete.stats) {
             Object.entries(athlete.stats).forEach(([key, val]) => {
+                const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
                 statsHtml += `
                 <div class="stat">
-                    <span class="stat-label" style="text-transform: capitalize;">${key}</span>
+                    <span class="stat-label">${formattedKey}</span>
                     <span class="stat-val">${val}</span>
                 </div>`;
             });
@@ -843,10 +863,30 @@ const app = {
 
     calculateContractTerms() {
         const goal = parseFloat(document.getElementById('wiz-goal').value);
-        const earnings = parseFloat(document.getElementById('wiz-earnings').value);
-        const time = document.getElementById('wiz-time').value;
+        const sport = document.getElementById('wiz-sport').value;
 
-        // Base Algorithm: (Requested / Est Earnings) * 100 to get raw %.
+        // Mock AI Valuation Logic
+        let earnings = 0;
+        let justification = "";
+
+        if (sport === 'Tennis') {
+            earnings = 1500000;
+            justification = "Our AI evaluates historical data. A top national UTR prospect typically averages $1.5M over their first 10 professional years via Challenger/ATP tours & standard sponsorships.";
+        } else if (sport === 'Soccer') {
+            earnings = 3000000;
+            justification = "AI evaluation indicates top academy players jumping to first-team contracts average $3.0M collectively in their first 10 years playing in tier-1 or tier-2 European leagues.";
+        } else if (sport === 'Track') {
+            earnings = 500000;
+            justification = "Based on national finalist sprinting data, a 10-year professional window yields $500k in prize money and shoe/equipment sponsorship deals on average.";
+        } else if (sport === 'Golf') {
+            earnings = 2500000;
+            justification = "Using WAGR and lower-tour estimations, moving into the Korn Ferry or PGA tour generates roughly $2.5M in standard 10-year earnings.";
+        } else {
+            earnings = 1000000;
+            justification = "Baseline algorithmic estimation for highly-rated amateur athletes turning pro over a 10-year period.";
+        }
+
+        // Base Algorithm: (Requested / Est Future Career Earnings) * 100 to get raw %.
         // Add a "Risk Premium" of 50% (x 1.5) to ensure investors are rewarded for the risk.
         // Cap it at a maximum of 30% so it's not predatory.
 
@@ -862,11 +902,87 @@ const app = {
         const finalShare = parseFloat(calculatedShare.toFixed(1));
 
         document.getElementById('calc-goal').innerText = goal.toLocaleString();
+        document.getElementById('calc-earnings').innerText = earnings.toLocaleString();
+        document.getElementById('calc-justification').innerText = justification;
         document.getElementById('calc-share').innerText = finalShare;
-        document.getElementById('calc-time').innerText = time;
 
         // Store temp for submission
         window._tempContractShare = finalShare;
+        window._tempEstEarnings = earnings;
+    },
+
+    renderDynamicSportFields() {
+        const sport = document.getElementById('wiz-sport').value;
+        const container = document.getElementById('sport-specific-stats-container');
+
+        if (!sport) {
+            container.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.9rem;">Please select a sport in Step 1 to enter your statistics.</p>';
+            return;
+        }
+
+        let html = '';
+        if (sport === 'Tennis') {
+            html = `
+                <div class="form-group">
+                    <label>Current WTN or UTR Rating</label>
+                    <input type="text" id="wiz-dyn1" required placeholder="e.g. UTR 11.5">
+                </div>
+                <div class="form-group">
+                    <label>Current National/ITF Rank</label>
+                    <input type="text" id="wiz-dyn2" required placeholder="e.g. Top 50 National">
+                </div>
+                <div class="form-group">
+                    <label>Notable Titles/Results</label>
+                    <input type="text" id="wiz-dyn3" required placeholder="e.g. 2x Regional Champion">
+                </div>
+            `;
+        } else if (sport === 'Soccer') {
+            html = `
+                <div class="form-group">
+                    <label>Primary Position</label>
+                    <input type="text" id="wiz-dyn1" required placeholder="e.g. Center Attacking Mid">
+                </div>
+                <div class="form-group">
+                    <label>Current Team / Academy</label>
+                    <input type="text" id="wiz-dyn2" required placeholder="e.g. Santos Academy">
+                </div>
+                <div class="form-group">
+                    <label>Goals/Assists (Last Season)</label>
+                    <input type="text" id="wiz-dyn3" required placeholder="e.g. 15 Goals, 8 Assists">
+                </div>
+            `;
+        } else if (sport === 'Track') {
+            html = `
+                <div class="form-group">
+                    <label>Main Event</label>
+                    <input type="text" id="wiz-dyn1" required placeholder="e.g. 100m Sprint">
+                </div>
+                <div class="form-group">
+                    <label>Personal Best (PB)</label>
+                    <input type="text" id="wiz-dyn2" required placeholder="e.g. 10.5s">
+                </div>
+                <div class="form-group">
+                    <label>Current Rank / Titles</label>
+                    <input type="text" id="wiz-dyn3" required placeholder="e.g. State Finalist">
+                </div>
+            `;
+        } else if (sport === 'Golf') {
+            html = `
+                <div class="form-group">
+                    <label>Current Handicap</label>
+                    <input type="text" id="wiz-dyn1" required placeholder="e.g. +2.5">
+                </div>
+                <div class="form-group">
+                    <label>WAGR (If applicable)</label>
+                    <input type="text" id="wiz-dyn2" placeholder="e.g. 850">
+                </div>
+                <div class="form-group">
+                    <label>Lowest Tournament Round</label>
+                    <input type="text" id="wiz-dyn3" required placeholder="e.g. 66 (-6)">
+                </div>
+            `;
+        }
+        container.innerHTML = html;
     },
 
     submitAthleteWizard(e) {
@@ -885,6 +1001,34 @@ const app = {
             }
         }
 
+        const sport = document.getElementById('wiz-sport').value;
+        let dynamicStats = {};
+        if (sport === 'Tennis') {
+            dynamicStats = {
+                rating: document.getElementById('wiz-dyn1').value,
+                rank: document.getElementById('wiz-dyn2').value,
+                titles: document.getElementById('wiz-dyn3').value
+            };
+        } else if (sport === 'Soccer') {
+            dynamicStats = {
+                position: document.getElementById('wiz-dyn1').value,
+                team: document.getElementById('wiz-dyn2').value,
+                performance: document.getElementById('wiz-dyn3').value
+            };
+        } else if (sport === 'Track') {
+            dynamicStats = {
+                event: document.getElementById('wiz-dyn1').value,
+                pb: document.getElementById('wiz-dyn2').value,
+                rank: document.getElementById('wiz-dyn3').value
+            };
+        } else if (sport === 'Golf') {
+            dynamicStats = {
+                handicap: document.getElementById('wiz-dyn1').value,
+                wagr: document.getElementById('wiz-dyn2').value,
+                lowestRound: document.getElementById('wiz-dyn3').value
+            };
+        }
+
         // Compile all data
         const profileData = {
             email: STATE.currentUserEmail,
@@ -892,18 +1036,15 @@ const app = {
             country: document.getElementById('wiz-country').value,
             birthday: bdayStr,
             age: calculatedAge,
-            sport: document.getElementById('wiz-sport').value,
+            sport: sport,
             image: document.getElementById('wiz-image').value || '',
             goal: parseFloat(document.getElementById('wiz-goal').value),
             raised: 0,
-            stats: {
-                stat1: document.getElementById('wiz-stat1').value,
-                stat2: document.getElementById('wiz-stat2').value,
-            },
+            stats: dynamicStats,
             plan: {
                 useOfFunds: document.getElementById('wiz-use').value,
                 timePeriod: document.getElementById('wiz-time').value,
-                estEarnings: parseFloat(document.getElementById('wiz-earnings').value),
+                estEarnings: window._tempEstEarnings,
                 revenueShare: window._tempContractShare
             },
             bio: document.getElementById('wiz-about').value,
@@ -965,14 +1106,27 @@ const app = {
         document.getElementById('edit-use').value = ath.plan?.useOfFunds || '';
         document.getElementById('edit-image').value = ath.image || '';
         document.getElementById('edit-video').value = ath.videoUrl || '';
-        document.getElementById('edit-stat1').value = ath.stats?.stat1 || '';
-        document.getElementById('edit-stat2').value = ath.stats?.stat2 || '';
-
-        // Ensure values are properly mapped visually if they had old formats
+        // Ensure values are properly mapped dynamically
         if (ath.stats) {
             const keys = Object.keys(ath.stats);
-            if (keys.length > 0 && !ath.stats.stat1) document.getElementById('edit-stat1').value = ath.stats[keys[0]] || '';
-            if (keys.length > 1 && !ath.stats.stat2) document.getElementById('edit-stat2').value = ath.stats[keys[1]] || '';
+            if (keys.length > 0) {
+                document.getElementById('label-stat1').innerText = keys[0].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                document.getElementById('edit-stat1').value = ath.stats[keys[0]] || '';
+            }
+            if (keys.length > 1) {
+                document.getElementById('label-stat2').innerText = keys[1].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                document.getElementById('edit-stat2').value = ath.stats[keys[1]] || '';
+            }
+            if (keys.length > 2) {
+                document.getElementById('group-stat3').style.display = 'block';
+                document.getElementById('label-stat3').innerText = keys[2].replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                document.getElementById('edit-stat3').value = ath.stats[keys[2]] || '';
+            } else {
+                document.getElementById('group-stat3').style.display = 'none';
+            }
+            window._editStatKeys = keys;
+        } else {
+            document.getElementById('group-stat3').style.display = 'none';
         }
     },
 
@@ -994,9 +1148,16 @@ const app = {
         }
         ath.image = document.getElementById('edit-image').value;
         ath.videoUrl = document.getElementById('edit-video').value;
+
         if (!ath.stats) ath.stats = {};
-        ath.stats.stat1 = document.getElementById('edit-stat1').value;
-        ath.stats.stat2 = document.getElementById('edit-stat2').value;
+        if (window._editStatKeys && window._editStatKeys.length > 0) {
+            if (window._editStatKeys[0]) ath.stats[window._editStatKeys[0]] = document.getElementById('edit-stat1').value;
+            if (window._editStatKeys[1]) ath.stats[window._editStatKeys[1]] = document.getElementById('edit-stat2').value;
+            if (window._editStatKeys[2]) ath.stats[window._editStatKeys[2]] = document.getElementById('edit-stat3').value;
+        } else {
+            ath.stats.stat1 = document.getElementById('edit-stat1').value;
+            ath.stats.stat2 = document.getElementById('edit-stat2').value;
+        }
 
         // Update corresponding marketAthlete
         if (ath.marketId) {

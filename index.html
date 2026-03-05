@@ -16,7 +16,7 @@
 <body>
     <div id="app">
         <!-- Navigation -->
-        <nav id="main-nav" class="hidden">
+        <nav id="main-nav">
             <div class="nav-container">
                 <div class="logo">
                     <i data-lucide="activity"></i>
@@ -43,22 +43,91 @@
                     <div class="card glass">
                         <h2>Join the Revolution</h2>
                         <div class="button-group">
-                            <button class="btn primary" onclick="app.viewLogin('athlete')">I am an Athlete</button>
-                            <button class="btn secondary" onclick="app.viewLogin('investor')">I am an Investor</button>
+                            <button class="btn primary" onclick="app.navigate('guide-athlete')">I am an Athlete</button>
+                            <button class="btn secondary" onclick="app.navigate('guide-investor')">I am an
+                                Investor</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Login / Registration -->
-            <section id="view-login" class="view hidden">
+            <!-- Guide: Athlete -->
+            <section id="view-guide-athlete" class="view hidden">
+                <div class="container fade-in" style="max-width: 800px; margin-top: 2rem;">
+                    <div class="page-header text-center">
+                        <h2>Athlete Guide</h2>
+                        <p>Focus on your craft. We'll handle the funding.</p>
+                    </div>
+                    <div class="card">
+                        <h3>What We Offer</h3>
+                        <p>CrowdAthletes allows you to raise capital from global investors to cover your living
+                            expenses, professional trainers, and equipment. You don't have to work an additional job;
+                            you can invest 100% of your time into yourself and your sport.</p>
+
+                        <h3 class="mt-4">The Deal</h3>
+                        <p>During the investment period, you are <strong>not expected</strong> to yield returns. The
+                            funds are yours to use for your athletic development as outlined in your Masterplan.</p>
+                        <p>When you make the jump to the professional level later on, you will pay back a pre-agreed
+                            percentage of your <strong>future contract and sponsorship earnings</strong> to your
+                            investors through our platform.</p>
+
+                        <h3 class="mt-4">Who we are looking for</h3>
+                        <p>We are seeking highly-driven, elite amateur or aspiring professional athletes who have a
+                            proven track record of regional or national success but lack the financial backing to turn
+                            pro. You must be willing to verify your identity and performance statistics with our team.
+                        </p>
+
+                        <div class="text-center mt-4">
+                            <button class="btn primary" onclick="app.viewRegister('athlete')">I Understand. Create My
+                                Profile</button>
+                            <div class="mt-2"><button class="btn secondary sm"
+                                    onclick="app.navigate('landing')">Back</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guide: Investor -->
+            <section id="view-guide-investor" class="view hidden">
+                <div class="container fade-in" style="max-width: 800px; margin-top: 2rem;">
+                    <div class="page-header text-center">
+                        <h2>Investor Guide</h2>
+                        <p>Back the next generation of superstars.</p>
+                    </div>
+                    <div class="card">
+                        <h3>What is CrowdAthletes?</h3>
+                        <p>CrowdAthletes is a unique marketplace where you can invest directly into the future earnings
+                            of high-potential athletes.</p>
+
+                        <h3 class="mt-4">How it works</h3>
+                        <p>Athletes need funding today to pay for elite coaching, travel, and living expenses so they
+                            can focus entirely on reaching the professional leagues. In exchange for your capital,
+                            athletes sign a Smart Contract committing a percentage of their future professional earnings
+                            back to the platform.</p>
+
+                        <h3 class="mt-4">Secondary Market</h3>
+                        <p>You do not have to wait years for a payout. As an athlete performs well and their
+                            verification score rises, the perceived value of their future contract increases. You can
+                            trade your shares with other investors on our Secondary Market.</p>
+
+                        <div class="text-center mt-4">
+                            <button class="btn primary" onclick="app.viewRegister('investor')">I Understand. Start
+                                Investing</button>
+                            <div class="mt-2"><button class="btn secondary sm"
+                                    onclick="app.navigate('landing')">Back</button></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Registration -->
+            <section id="view-register" class="view hidden">
                 <div class="container fade-in" style="max-width: 500px; margin-top: 5rem;">
                     <div class="card">
-                        <h2 id="auth-title" class="text-center">Login or Register</h2>
-                        <p class="text-center mb-4">Enter your email to continue. We'll create an account if you don't
-                            have one.</p>
-                        <form id="auth-form" onsubmit="app.submitAuth(event)">
-                            <input type="hidden" id="auth-type" name="type" value="investor">
+                        <h2 id="register-title" class="text-center">Create Account</h2>
+                        <p class="text-center mb-4">Enter your email to register.</p>
+                        <form id="register-form" onsubmit="app.submitRegister(event)">
+                            <input type="hidden" id="register-type" name="type" value="investor">
                             <div class="form-group">
                                 <label>Email Address</label>
                                 <input type="email" name="email" required placeholder="you@example.com">
@@ -67,7 +136,29 @@
                                 <label>Password</label>
                                 <input type="password" name="password" required placeholder="••••••••">
                             </div>
-                            <button type="submit" class="btn primary full-width">Continue</button>
+                            <button type="submit" class="btn primary full-width">Register</button>
+                        </form>
+                        <button class="btn secondary full-width mt-4" onclick="app.navigate('landing')">Cancel</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Login -->
+            <section id="view-login" class="view hidden">
+                <div class="container fade-in" style="max-width: 500px; margin-top: 5rem;">
+                    <div class="card">
+                        <h2 class="text-center">Welcome Back</h2>
+                        <p class="text-center mb-4">Log in to your account.</p>
+                        <form id="login-form" onsubmit="app.submitLogin(event)">
+                            <div class="form-group">
+                                <label>Email Address</label>
+                                <input type="email" name="email" required placeholder="you@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" name="password" required placeholder="••••••••">
+                            </div>
+                            <button type="submit" class="btn primary full-width">Login</button>
                         </form>
                         <button class="btn secondary full-width mt-4" onclick="app.navigate('landing')">Cancel</button>
                     </div>
@@ -233,7 +324,7 @@
                         style="display: flex; justify-content: space-between; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;">
                         <div id="wiz-step-1" class="text-green" style="font-weight: 700;">1. Basic Info</div>
                         <div id="wiz-step-2" style="color: var(--color-text-muted);">2. Your Plan</div>
-                        <div id="wiz-step-3" style="color: var(--color-text-muted);">3. Highlights</div>
+                        <div id="wiz-step-3" style="color: var(--color-text-muted);">3. Statistics</div>
                         <div id="wiz-step-4" style="color: var(--color-text-muted);">4. Contract</div>
                     </div>
 
@@ -255,7 +346,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Sport</label>
-                                <select id="wiz-sport" required>
+                                <select id="wiz-sport" required onchange="app.renderDynamicSportFields()">
+                                    <option value="" disabled selected>Select your sport...</option>
                                     <option value="Tennis">Tennis</option>
                                     <option value="Soccer">Soccer</option>
                                     <option value="Track">Track & Field</option>
@@ -293,13 +385,7 @@
                                 <label>Funding Goal ($)</label>
                                 <input type="number" id="wiz-goal" required placeholder="15000" min="1000">
                             </div>
-                            <div class="form-group">
-                                <label>Estimated Total Earnings During This Period ($)</label>
-                                <p style="font-size: 0.8rem; color: var(--color-text-muted);">Be realistic. This will
-                                    determine how much equity you give away.</p>
-                                <input type="number" id="wiz-earnings" required placeholder="50000" min="0">
-                            </div>
-                            <div style="display: flex; gap: 1rem;">
+                            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                                 <button type="button" class="btn secondary"
                                     onclick="app.prevWizardStep(2)">Back</button>
                                 <button type="submit" class="btn primary">Next Step <i
@@ -309,16 +395,14 @@
 
                         <!-- Step 3: Proof & Validation -->
                         <form id="wiz-form-3" class="hidden" onsubmit="app.nextWizardStep(3, event)">
-                            <h3>Step 3: Highlights</h3>
+                            <h3>Step 3: Statistics</h3>
                             <p class="mb-4">Provide evidence of your track record to build trust with investors.</p>
 
-                            <div class="form-group">
-                                <label>Key Statistic 1 (e.g. Win Rate, Goals Scored)</label>
-                                <input type="text" id="wiz-stat1" required placeholder="Win Rate: 82%">
-                            </div>
-                            <div class="form-group">
-                                <label>Key Statistic 2 (e.g. Regional Rank)</label>
-                                <input type="text" id="wiz-stat2" required placeholder="Rank: Top 10 National">
+                            <!-- Dynamic fields based on sport -->
+                            <div id="sport-specific-stats-container">
+                                <!-- Injected by JS -->
+                                <p style="color: var(--color-text-muted); font-size: 0.9rem;">Please select a sport in
+                                    Step 1 to enter your statistics.</p>
                             </div>
 
                             <div class="form-group"
@@ -341,8 +425,26 @@
                         <!-- Step 4: Funding Calculator & Contract -->
                         <form id="wiz-form-4" class="hidden" onsubmit="app.submitAthleteWizard(event)">
                             <h3>Step 4: Smart Contract Terms</h3>
-                            <p class="mb-4">Based on your plan and estimated earnings, our algorithm has generated your
-                                required revenue-share offering.</p>
+                            <p class="mb-4">Our proprietary AI Valuation Model has analyzed your sport and statistics to
+                                estimate your potential career earnings. Based on this, we've formulated your required
+                                revenue-share offering.</p>
+
+                            <div
+                                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+                                <h4 style="margin-top: 0; color: var(--color-accent); font-size: 1rem;"><i
+                                        data-lucide="brain-circuit"
+                                        style="width: 16px; height: 16px; display: inline-block; vertical-align: middle;"></i>
+                                    AI Valuation Estimate</h4>
+                                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                                    <span style="color: var(--color-text-muted); font-size: 0.9rem;">Estimated Future
+                                        Earnings:</span>
+                                    <strong style="font-size: 1.2rem; color: var(--color-text);">$<span
+                                            id="calc-earnings"></span></strong>
+                                </div>
+                                <p id="calc-justification"
+                                    style="font-size: 0.85rem; color: var(--color-text-muted); margin-top: 0.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem;">
+                                </p>
+                            </div>
 
                             <div
                                 style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--color-accent); padding: 2rem; border-radius: var(--radius-md); text-align: center; margin-bottom: 2rem;">
@@ -354,9 +456,24 @@
                                     style="font-size: 4rem; font-weight: 800; color: var(--color-accent); line-height: 1;">
                                     <span id="calc-share">0</span>%
                                 </div>
-                                <p class="mt-4" style="font-size: 0.9rem; color: var(--color-text);">Of all
-                                    sports-related income for the duration of the contract (<span
-                                        id="calc-time"></span>).</p>
+                                <p class="mt-4" style="font-size: 1rem; color: var(--color-text); font-weight: 600;">Of
+                                    your professional contract and sponsorship earnings for <strong>10 Years</strong>
+                                    after turning pro.</p>
+
+                            </div>
+
+                            <div
+                                style="background: rgba(255,165,0,0.1); border: 1px solid orange; padding: 1.5rem; border-radius: var(--radius-md); margin-bottom: 2rem;">
+                                <h4
+                                    style="color: orange; margin-top: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i> Identity &
+                                    Performance Verification required
+                                </h4>
+                                <p style="font-size: 0.9rem; margin-bottom: 0;">By signing the contract below, you agree
+                                    to these terms. Wait! You will not instantly receive funds. <strong>You will be
+                                        contacted by a CrowdAthlete staff member</strong> to verify your identity,
+                                    perform a background check, and validate your submitted performance statistics
+                                    before your profile goes live on the marketplace.</p>
                             </div>
 
                             <div class="form-group">
@@ -431,13 +548,19 @@
                                 <label>Highlight Video URL</label>
                                 <input type="url" id="edit-video" placeholder="https://...">
                             </div>
-                            <div class="form-group">
-                                <label>Key Statistic 1</label>
-                                <input type="text" id="edit-stat1">
-                            </div>
-                            <div class="form-group">
-                                <label>Key Statistic 2</label>
-                                <input type="text" id="edit-stat2">
+                            <div id="edit-stats-container">
+                                <div class="form-group">
+                                    <label id="label-stat1">Statistic 1</label>
+                                    <input type="text" id="edit-stat1">
+                                </div>
+                                <div class="form-group">
+                                    <label id="label-stat2">Statistic 2</label>
+                                    <input type="text" id="edit-stat2">
+                                </div>
+                                <div class="form-group" id="group-stat3">
+                                    <label id="label-stat3">Statistic 3</label>
+                                    <input type="text" id="edit-stat3">
+                                </div>
                             </div>
                             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                                 <button type="button" class="btn secondary"
